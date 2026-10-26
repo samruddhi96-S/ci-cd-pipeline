@@ -1,6 +1,6 @@
 # CI/CD Starter Template (Python + GitHub Actions)
 
-![CI](https://github.com/YOUR-USERNAME/YOUR-REPO/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/samruddhi96-S/ci-cd-pipeline/YOUR-/actions/workflows/ci.yml/badge.svg)
 
 Ek ready-made CI/CD pipeline jo kisi bhi Python project me copy karke use ho sakti hai.
 Code push karte hi ye apne aap **lint, test, security scan, Docker build aur publish** karti hai.
