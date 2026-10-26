@@ -1,5 +1,7 @@
 """Chhota Flask web app. Pipeline isi app ko test, build aur deploy karti hai."""
 
+import os
+
 from flask import Flask, jsonify, request
 
 from app.calculator import add, divide, multiply, subtract
@@ -41,4 +43,5 @@ def calc(operation):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    host = os.environ.get("APP_HOST", "127.0.0.1")
+    app.run(host=host, port=5000)
