@@ -1,0 +1,36 @@
+name: CD
+
+# Jab main branch pe code merge ho aur CI pass ho jaye, tab Docker image
+# GitHub Container Registry (ghcr.io) pe publish hoti hai. Koi extra account nahi chahiye.
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Docker image publish
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: GitHub Container Registry me login
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image name lowercase me banao
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Build aur push
+        run: |
+          docker build -t "$IMAGE:latest" -t "$IMAGE:${{ github.event.workflow_run.head_sha }}" .
+          docker push "$IMAGE" --all-tags
