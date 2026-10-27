@@ -1,82 +1,94 @@
 # CI/CD Starter Template (Python + GitHub Actions)
 
-![CI](https://github.com/samruddhi96-S/ci-cd-pipeline/YOUR-/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/samruddhi96-S/ci-cd-pipeline/actions/workflows/ci.yml/badge.svg)
 
-Ek ready-made CI/CD pipeline jo kisi bhi Python project me copy karke use ho sakti hai.
-Code push karte hi ye apne aap **lint, test, security scan, Docker build aur publish** karti hai.
+A ready-made CI/CD pipeline that you can copy into any Python project.
+On every push it automatically **lints, tests, scans for security issues, builds a Docker image and publishes it**.
 
-## Ye kya karta hai
+## What it does
 
-| Step | Tool | Kaam |
-|------|------|------|
-| 1. Lint | ruff | Code style aur galtiyan check |
-| 2. Test | pytest + coverage | Code sahi chal raha hai ya nahi, aur kitna code test hua (minimum 80%) |
-| 3. Security | bandit, pip-audit | Unsafe code aur vulnerable libraries |
-| 4. Docker build | Docker | App ko container me pack karke health check |
-| 5. Publish (CD) | GitHub Container Registry | Image `ghcr.io` pe publish, koi extra account nahi |
+| Step | Tool | Purpose |
+|------|------|---------|
+| 1. Lint | ruff | Checks code style and common mistakes |
+| 2. Test | pytest + coverage | Runs the tests and enforces at least 80% coverage |
+| 3. Security | bandit, pip-audit | Finds unsafe code and vulnerable libraries |
+| 4. Docker build | Docker | Packages the app in a container and runs a health check |
+| 5. Publish (CD) | GitHub Container Registry | Publishes the image to `ghcr.io`, no extra account needed |
 
 Pipeline flow:
 
 ```
-push / pull request -> Lint + Test (Python 3.11, 3.12) -> Security -> Docker build -> (main branch pe) Publish
+push / pull request -> Lint + Test (Python 3.11, 3.12) -> Security scan -> Docker build -> Publish (main branch only)
 ```
 
-## Company me use kaise kare (3 steps)
+## How to use it in your company (3 steps)
 
-1. GitHub pe is repo me **"Use this template"** button dabao (ya repo ko apne account me upload karo). *Template repo banane ke liye: Settings -> "Template repository" tick karo.*
-2. `app/` me apna code aur `tests/` me apne tests daalo. Libraries `requirements.txt` me likho.
-3. Code push karo. **Actions** tab me pipeline apne aap chalti dikhegi. Bas.
+1. Click **"Use this template"** on the GitHub repository page. (To enable this button, go to Settings and tick "Template repository".)
+2. Put your code in `app/` and your tests in `tests/`. List your libraries in `requirements.txt`.
+3. Push your code. Open the **Actions** tab and the pipeline runs automatically.
 
-Koi secret, token ya extra setup nahi chahiye. Publish step GitHub ka built-in token use karta hai.
+No secrets, tokens or extra setup are required. The publish step uses GitHub's built-in token.
 
-## Repo ko GitHub pe upload kaise kare (pehli baar)
-
-1. github.com pe naya repository banao (Public rakho taaki Actions free rahe).
-2. Repo page pe **"uploading an existing file"** link pe click karo.
-3. Is folder ki saari files drag-drop karo (`.github` folder ke saath) aur **Commit changes** dabao.
-4. **Actions** tab kholo, pipeline chal rahi hogi. Green tick = sab pass.
-
-> Dhyan do: `.github` folder hidden hota hai. Upload karte time ye folder zaroor include ho, warna pipeline nahi chalegi.
-
-## Apne computer pe chalana (optional)
+## Uploading to GitHub for the first time
 
 ```bash
-pip install -r requirements-dev.txt   # ya: make install
-ruff check .                          # lint
-pytest --cov                          # tests
-python -m app.main                    # app chalao, phir browser me http://localhost:5000
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/<your-username>/<your-repo>.git
+git push -u origin main
 ```
 
-Docker se: `docker build -t cicd-starter .` phir `docker run -p 5000:5000 cicd-starter`
+Make sure the hidden `.github` folder is included, otherwise the pipeline will not run.
 
-## Sample app ke endpoints
+## Running locally (optional)
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate          # Windows (on Mac/Linux: source .venv/bin/activate)
+pip install -r requirements-dev.txt
+ruff check .                    # lint
+pytest --cov                    # tests with coverage
+python -m app.main              # start the app at http://localhost:5000
+```
+
+With Docker:
+
+```bash
+docker build -t cicd-starter .
+docker run -p 5000:5000 cicd-starter
+```
+
+## Sample app endpoints
 
 - `/` welcome message
 - `/health` health check
-- `/calc/add?a=2&b=3` (add, subtract, multiply, divide)
+- `/calc/add?a=2&b=3` (supports add, subtract, multiply, divide)
 
-## Customize kaise kare
+## Customizing
 
-- **Python version badalna:** `.github/workflows/ci.yml` me `python-version` list.
-- **Coverage limit badalna:** `ci.yml` me `--cov-fail-under=80`.
-- **Naya test:** `tests/` folder me `test_*.py` file banao.
-- **Deploy kisi aur jagah:** `cd.yml` me last step badlo (Render/Railway/server).
+- **Change the Python versions:** edit the `python-version` list in `.github/workflows/ci.yml`.
+- **Change the coverage limit:** edit `--cov-fail-under=80` in `ci.yml`.
+- **Add a test:** create a `test_*.py` file in the `tests/` folder.
+- **Deploy somewhere else:** replace the last step in `cd.yml` (Render, Railway, your own server, etc.).
 
-## Common errors aur solution
+## Troubleshooting
 
-| Error | Wajah | Solution |
-|-------|-------|----------|
-| Pipeline chal hi nahi rahi | `.github` folder upload nahi hua | Folder dobara upload karo |
-| `ruff` fail | Code style issue | `ruff check . --fix` chalao |
-| Coverage fail | 80% se kam code test hua | Aur tests likho ya limit kam karo |
-| Publish step fail | Package permission | Settings -> Actions -> General -> Workflow permissions -> "Read and write" |
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| Pipeline does not run at all | The `.github` folder was not uploaded | Upload the folder again |
+| Lint (`ruff`) fails | Code style issue | Run `ruff check . --fix` |
+| Coverage check fails | Less than 80% of the code is tested | Add more tests or lower the limit |
+| Security scan (`bandit`) fails | Unsafe code pattern found | Fix the line it reports |
+| Publish step fails | Missing package permission | Settings -> Actions -> General -> Workflow permissions -> "Read and write permissions" |
 
 ## Folder structure
 
 ```
-app/                  Python code
-tests/                Tests
-.github/workflows/    ci.yml (test, security, docker) aur cd.yml (publish)
-Dockerfile            Container banane ke liye
-Makefile              Short commands (make test, make lint)
+app/                  Python source code
+tests/                Automated tests
+.github/workflows/    ci.yml (lint, test, security, Docker) and cd.yml (publish)
+Dockerfile            Builds the container image
+Makefile              Shortcut commands (make test, make lint)
 ```

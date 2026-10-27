@@ -1,4 +1,7 @@
-"""Simple calculator functions. Ye sample code hai, apne project ke code se replace kar sakte ho."""
+"""Simple calculator functions.
+
+This is sample code. Replace it with your own project's code.
+"""
 
 
 def add(a, b):
@@ -15,5 +18,5 @@ def multiply(a, b):
 
 def divide(a, b):
     if b == 0:
-        raise ValueError("Zero se divide nahi kar sakte")
+        raise ValueError("Cannot divide by zero")
     return a / b

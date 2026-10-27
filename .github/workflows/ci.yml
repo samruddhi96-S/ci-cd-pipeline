@@ -1,6 +1,6 @@
 name: CI
 
-# Jab bhi code push ho ya pull request bane, ye pipeline apne aap chalegi
+# Runs automatically on every push to main and on every pull request
 on:
   push:
     branches: [main]
@@ -14,26 +14,26 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12"]
     steps:
-      - name: Code download karo
+      - name: Check out the code
         uses: actions/checkout@v4
 
-      - name: Python setup karo
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: requirements-dev.txt
 
-      - name: Libraries install karo
+      - name: Install dependencies
         run: pip install -r requirements-dev.txt
 
-      - name: Lint check (code style)
+      - name: Lint (code style check)
         run: ruff check .
 
-      - name: Tests chalao + coverage
+      - name: Run tests with coverage
         run: pytest --cov --cov-report=term-missing --cov-report=xml --cov-fail-under=80
 
-      - name: Coverage report save karo
+      - name: Upload coverage report
         if: matrix.python-version == '3.12'
         uses: actions/upload-artifact@v4
         with:
@@ -48,11 +48,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Security tools install karo
+      - name: Install security tools
         run: pip install -r requirements-dev.txt
-      - name: Unsafe code check (bandit)
+      - name: Scan code for unsafe patterns (bandit)
         run: bandit -r app
-      - name: Vulnerable libraries check (pip-audit)
+      - name: Scan libraries for known vulnerabilities (pip-audit)
         run: pip-audit -r requirements.txt
 
   docker:
@@ -61,9 +61,9 @@ jobs:
     needs: [test, security]
     steps:
       - uses: actions/checkout@v4
-      - name: Docker image build karo
+      - name: Build the Docker image
         run: docker build -t cicd-starter .
-      - name: Container chala ke health check karo
+      - name: Start the container and run a health check
         run: |
           docker run -d -p 5000:5000 --name app cicd-starter
           sleep 5

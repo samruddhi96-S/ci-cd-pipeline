@@ -1,4 +1,4 @@
-"""Chhota Flask web app. Pipeline isi app ko test, build aur deploy karti hai."""
+"""Small Flask web app that the CI/CD pipeline tests, builds and publishes."""
 
 import os
 
@@ -18,7 +18,7 @@ OPERATIONS = {
 
 @app.route("/")
 def home():
-    return jsonify(message="CI/CD starter app chal raha hai!")
+    return jsonify(message="CI/CD starter app is running!")
 
 
 @app.route("/health")
@@ -34,7 +34,7 @@ def calc(operation):
         a = float(request.args.get("a", ""))
         b = float(request.args.get("b", ""))
     except ValueError:
-        return jsonify(error="a aur b numbers hone chahiye"), 400
+        return jsonify(error="Parameters a and b must be numbers"), 400
     try:
         result = OPERATIONS[operation](a, b)
     except ValueError as exc:
@@ -43,5 +43,6 @@ def calc(operation):
 
 
 if __name__ == "__main__":
+    # Binds to localhost by default. Set APP_HOST to change it.
     host = os.environ.get("APP_HOST", "127.0.0.1")
     app.run(host=host, port=5000)
