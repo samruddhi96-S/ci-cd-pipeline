@@ -1,0 +1,70 @@
+name: CI
+
+# Runs automatically on every push to main and on every pull request
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Lint + Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (code style check)
+        run: ruff check .
+
+      - name: Run tests with coverage
+        run: pytest --cov --cov-report=term-missing --cov-report=xml --cov-fail-under=80
+
+      - name: Upload coverage report
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install security tools
+        run: pip install -r requirements-dev.txt
+      - name: Scan code for unsafe patterns (bandit)
+        run: bandit -r app
+      - name: Scan libraries for known vulnerabilities (pip-audit)
+        run: pip-audit -r requirements.txt
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
+        run: docker build -t cicd-starter .
+      - name: Start the container and run a health check
+        run: |
+          docker run -d -p 5000:5000 --name app cicd-starter
+          sleep 5
+          curl --fail http://localhost:5000/health
